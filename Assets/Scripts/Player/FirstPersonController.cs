@@ -124,7 +124,7 @@ public class FirstPersonController : MonoBehaviour {
                 //Scale the desired move direction vector by the target speed
                 desiredMove *= movementSettings.CurrentTargetSpeed;
                 //Set the player speed
-                m_RigidBody.velocity = new Vector3(desiredMove.x, desiredMove.y + m_RigidBody.velocity.y, desiredMove.z);
+                m_RigidBody.velocity = new Vector3(desiredMove.x, m_RigidBody.velocity.y, desiredMove.z);
             } else {
                 m_RigidBody.velocity = new Vector3(0f, m_RigidBody.velocity.y, 0f);
             }
@@ -168,11 +168,19 @@ public class FirstPersonController : MonoBehaviour {
 
 
     private Vector2 GetInput() {
-        
-        Vector2 input = new Vector2 {
-            x = CrossPlatformInputManager.GetAxis("Horizontal"),
-            y = CrossPlatformInputManager.GetAxis("Vertical")
-        };
+        Vector2 input = new Vector2(0f, 0f);
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) {
+            input.y += 1f;
+        }
+        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) {
+            input.y -= 1f;
+        }
+        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.LeftArrow)) {
+            input.x += 1f;
+        }
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.RightArrow)) {
+            input.x -= 1f;
+        }
         movementSettings.UpdateDesiredTargetSpeed(input);
         return input;
     }

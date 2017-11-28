@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+//Used both in-game and in the editor for positioning objects
 public class PlatformBounds {
     private Collider col;
     private Transform trans;
@@ -18,7 +19,7 @@ public class PlatformBounds {
         set {
             XSize = value.x * 2;
             YSize = value.y * 2;
-            ZSize = value.x * 2;
+            ZSize = value.z * 2;
         }
     }
 
@@ -59,33 +60,14 @@ public class PlatformBounds {
 
     public PlatformBounds(GameObject platform, int _sides) {
         this.sides = _sides;
-        this.col = platform.GetComponent<Collider>();
         this.trans = platform.GetComponent<Transform>();
-    }
-
-    //Returns the position and axis to pivot around
-    public Vector3[] SidePivot(Direction dir) {
-        Vector3[] posAndAxis = new Vector3[2];
-        switch (dir) {
-            case Direction.NORTH:
-                posAndAxis[0] = Center + trans.forward * HalfWidth.z;
-                posAndAxis[1] = trans.forward;
+        //Get the child collider by looping to look for the platform's mesh object
+        for (int i = 0; i < trans.childCount; i++) {
+            Transform child = trans.GetChild(i);
+            if (child.tag == "platformMesh") {
+                col = child.GetComponent<Collider>();
                 break;
-            case Direction.EAST:
-                posAndAxis[0] = Center + trans.right * HalfWidth.x;
-                posAndAxis[1] = trans.right;
-                break;
-            case Direction.SOUTH:
-                posAndAxis[0] = Center - trans.forward * HalfWidth.z;
-                posAndAxis[1] = -trans.forward;
-                break;
-            case Direction.WEST:
-                posAndAxis[0] = Center - trans.right * HalfWidth.x;
-                posAndAxis[1] = -trans.right;
-                break;
-            default:
-                break;
+            }
         }
-        return posAndAxis;
     }
 }

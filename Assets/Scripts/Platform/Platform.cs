@@ -9,7 +9,6 @@ public enum Direction {
     WEST
 }
 
-[RequireComponent(typeof(Collider))]
 [RequireComponent(typeof(Transform))]
 public class Platform : MonoBehaviour {
     //Number of sides this platform has
@@ -34,13 +33,13 @@ public class Platform : MonoBehaviour {
     //Dictionary of stairs colliding with the platform
     Dictionary<Direction, Stair> attachedStairs = new Dictionary<Direction, Stair>();
 
+    //Bounds of this platform
     PlatformBounds bounds;
-
 
     // Use this for initialization
     void Start() {
-        this.bounds = new PlatformBounds(gameObject, 4);
-        bounds.XSize = 4;
+        //Create a bounds object so we can properly place this platform
+        bounds = new PlatformBounds(gameObject, sidesCount);
 
         localStairRot = 0.0f;
         localPlatformRot = 0.0f;
@@ -75,73 +74,56 @@ public class Platform : MonoBehaviour {
         bool rotateClockwise = false;
         bool rotateCounter = false;
 
-        if (!active) return;
+        if (!active)
+            return;
 
-        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
-        {
+        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) {
             rotateStairs = false;
-        }
-        else
-        {
+        } else {
             rotateStairs = true;
         }
 
-        if (Input.GetKey(KeyCode.Q))
-        {
+        if (Input.GetKey(KeyCode.Q)) {
             rotateCounter = true;
         }
-        if (Input.GetKey(KeyCode.E))
-        {
+        if (Input.GetKey(KeyCode.E)) {
             rotateClockwise = true;
         }
         
         float stairAngle = 0.0f;
         float platformAngle = 0.0f;
-        if (rotateClockwise)
-        {
-            if (rotateStairs)
-            {
-                stairAngle += (Mathf.PI / 10f) * stairRotSpeed;
-            }
-            if(rotatePlatforms)
-            {
-                platformAngle += (Mathf.PI / 10f) * platformRotSpeed;
+        if (rotateClockwise) {
+            if (rotateStairs) {
+                stairAngle += Mathf.PI * stairRotSpeed;
+            } else {
+                platformAngle += Mathf.PI * platformRotSpeed;
             } 
         }
-        if (rotateCounter)
-        {
-            if (rotateStairs)
-            {
-                stairAngle -= (Mathf.PI / 10f) * stairRotSpeed;
-            }
-            if (rotatePlatforms)
-            {
-                platformAngle -= (Mathf.PI / 10f) * platformRotSpeed;
+        if (rotateCounter) {
+            if (rotateStairs) {
+                stairAngle -= Mathf.PI * stairRotSpeed;
+            } else {
+                platformAngle -= Mathf.PI * platformRotSpeed;
             }
         }
 
         localStairRot += stairAngle;
         localPlatformRot += platformAngle;
 
-        if (!rotateStairs)
-        {
-            //Rotates the platform
-            transform.RotateAround(bounds.Center, transform.up, platformAngle);
-            //Rotates the stairs
-            foreach (KeyValuePair<Direction, Stair> item in attachedStairs)
-            {
-                Transform stairTransform = item.Value.gameObject.GetComponent<Transform>();
-                Vector3[] pointToRotate = bounds.SidePivot(item.Key);
-                stairTransform.RotateAround(bounds.Center, transform.up, platformAngle);
-            }
+        if (!rotateStairs) {
+            transform.localEulerAngles = new Vector3(0f, localPlatformRot, 0f);
         } else {
-            //Rotates the stairs
-            foreach (KeyValuePair<Direction, Stair> item in attachedStairs)
-            {
-                Transform stairTransform = item.Value.gameObject.GetComponent<Transform>();
-                Vector3[] pointToRotate = bounds.SidePivot(item.Key);
-                stairTransform.RotateAround(pointToRotate[0], pointToRotate[1], stairAngle);
-            }
+            Transform NTransform = stairColliders[Direction.NORTH].transform;
+            NTransform.localEulerAngles = new Vector3(0f, 0f, localStairRot);
+
+            Transform STransform = stairColliders[Direction.SOUTH].transform;
+            STransform.localEulerAngles = new Vector3(0f, 0f, -localStairRot);
+
+            Transform ETransform = stairColliders[Direction.EAST].transform;
+            ETransform.localEulerAngles = new Vector3(localStairRot, 0f, 0f);
+
+            Transform WTransform = stairColliders[Direction.WEST].transform;
+            WTransform.localEulerAngles = new Vector3(-localStairRot, 0f, 0f);
         }
     }
 
@@ -162,17 +144,25 @@ public class Platform : MonoBehaviour {
     }
 
     public void OnPlayerEnter(Collider playerCol) {
-        if (playerCol.gameObject.tag == "Player")
-        {
+        if (playerCol.gameObject.tag == "Player") {
             this.active = true;
+            foreach (KeyValuePair<Direction, Stair> stairItem in attachedStairs) {
+                Stair stair = stairItem.Value;
+                //Parent the stair's transform
+                stair.transform.SetParent(stairColliders[stairItem.Key].transform, true);
+            }
         }
     }
-    
-    public void OnPlayerLeave(Collider playerCol)
-    {
-        if (playerCol.gameObject.tag == "Player")
-        {
+
+    public void OnPlayerLeave(Collider playerCol) {
+        if (playerCol.gameObject.tag == "Player") {
             this.active = false;
+            //Unparent all stairs
+            foreach (KeyValuePair<Direction, Stair> stairItem in attachedStairs) {
+                Stair stair = stairItem.Value;
+                //Remove the parented relationship
+                stair.transform.parent = null;
+            }
         }
     }
 }
