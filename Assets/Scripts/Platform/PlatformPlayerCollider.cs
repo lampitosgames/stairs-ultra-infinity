@@ -4,14 +4,24 @@ using UnityEngine;
 
 [RequireComponent(typeof(Collider))]
 public class PlatformPlayerCollider : MonoBehaviour {
+    //Reference to the parent script
+    private Platform parent;
 
     // Use this for initialization
-    void Start() {
-		
+    void Start()
+    {
+        parent = transform.parent.GetComponent<Platform>();
     }
-	
-    // Update is called once per frame
-    void Update() {
-		
+
+    //When there is a collision, pass it to the parent for game logic handleing
+    void OnTriggerEnter(Collider otherCol)
+    {
+        parent.OnPlayerEnter(otherCol);
+    }
+
+    //When the collision stops, pass it to the parent for game logic handling
+    void OnTriggerExit(Collider otherCol)
+    {
+        parent.OnPlayerLeave(otherCol);
     }
 }

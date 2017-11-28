@@ -22,7 +22,7 @@ public class PlatformStairCollider : MonoBehaviour {
     }
 
     //When the collision stops, pass it to the parent for game logic handling
-    void OnTriggerLeave(Collider otherCol) {
+    void OnTriggerExit(Collider otherCol) {
         parent.OnStairTriggerLeave(dir, otherCol);
     }
 }

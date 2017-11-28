@@ -15,6 +15,19 @@ public class Platform : MonoBehaviour {
     //Number of sides this platform has
     public int sidesCount = 4;
 
+    //Is the platform active?
+    public bool active = false;
+
+    //Stairs rotation speed variables
+    public float stairRotSpeed;
+    public float platformRotSpeed;
+
+    float localStairRot;
+    float localPlatformRot;
+
+    bool rotateStairs = true;
+    bool rotatePlatforms = true;
+
     //Dictionary of colliders on all sides of the platform
     Dictionary<Direction, PlatformStairCollider> stairColliders = new Dictionary<Direction, PlatformStairCollider>();
 
@@ -28,6 +41,10 @@ public class Platform : MonoBehaviour {
     void Start() {
         this.bounds = new PlatformBounds(gameObject, 4);
         bounds.XSize = 4;
+
+        localStairRot = 0.0f;
+        localPlatformRot = 0.0f;
+         
         //Get children
         for (int i = 0; i < transform.childCount; i++) {
             GameObject child = transform.GetChild(i).gameObject;
@@ -54,12 +71,77 @@ public class Platform : MonoBehaviour {
 	
     // Update is called once per frame
     void Update() {
-        transform.RotateAround(bounds.Center, transform.up, Mathf.PI / 10f);
-        foreach (KeyValuePair<Direction, Stair> item in attachedStairs) {
-            Transform stairTransform = item.Value.gameObject.GetComponent<Transform>();
-            Vector3[] pointToRotate = bounds.SidePivot(item.Key);
-            stairTransform.RotateAround(pointToRotate[0], pointToRotate[1], Mathf.PI / 10f);
-            stairTransform.RotateAround(bounds.Center, transform.up, Mathf.PI / 10f);
+
+        bool rotateClockwise = false;
+        bool rotateCounter = false;
+
+        if (!active) return;
+
+        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+        {
+            rotateStairs = false;
+        }
+        else
+        {
+            rotateStairs = true;
+        }
+
+        if (Input.GetKey(KeyCode.Q))
+        {
+            rotateCounter = true;
+        }
+        if (Input.GetKey(KeyCode.E))
+        {
+            rotateClockwise = true;
+        }
+        
+        float stairAngle = 0.0f;
+        float platformAngle = 0.0f;
+        if (rotateClockwise)
+        {
+            if (rotateStairs)
+            {
+                stairAngle += (Mathf.PI / 10f) * stairRotSpeed;
+            }
+            if(rotatePlatforms)
+            {
+                platformAngle += (Mathf.PI / 10f) * platformRotSpeed;
+            } 
+        }
+        if (rotateCounter)
+        {
+            if (rotateStairs)
+            {
+                stairAngle -= (Mathf.PI / 10f) * stairRotSpeed;
+            }
+            if (rotatePlatforms)
+            {
+                platformAngle -= (Mathf.PI / 10f) * platformRotSpeed;
+            }
+        }
+
+        localStairRot += stairAngle;
+        localPlatformRot += platformAngle;
+
+        if (!rotateStairs)
+        {
+            //Rotates the platform
+            transform.RotateAround(bounds.Center, transform.up, platformAngle);
+            //Rotates the stairs
+            foreach (KeyValuePair<Direction, Stair> item in attachedStairs)
+            {
+                Transform stairTransform = item.Value.gameObject.GetComponent<Transform>();
+                Vector3[] pointToRotate = bounds.SidePivot(item.Key);
+                stairTransform.RotateAround(bounds.Center, transform.up, platformAngle);
+            }
+        } else {
+            //Rotates the stairs
+            foreach (KeyValuePair<Direction, Stair> item in attachedStairs)
+            {
+                Transform stairTransform = item.Value.gameObject.GetComponent<Transform>();
+                Vector3[] pointToRotate = bounds.SidePivot(item.Key);
+                stairTransform.RotateAround(pointToRotate[0], pointToRotate[1], stairAngle);
+            }
         }
     }
 
@@ -80,6 +162,17 @@ public class Platform : MonoBehaviour {
     }
 
     public void OnPlayerEnter(Collider playerCol) {
-        //Do things
+        if (playerCol.gameObject.tag == "Player")
+        {
+            this.active = true;
+        }
+    }
+    
+    public void OnPlayerLeave(Collider playerCol)
+    {
+        if (playerCol.gameObject.tag == "Player")
+        {
+            this.active = false;
+        }
     }
 }
