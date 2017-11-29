@@ -15,13 +15,4 @@ public class EditorStair : MonoBehaviour {
 		dir = bounds.Dir;
 		rot = bounds.Rot;
 	}
-
-	[MenuItem("Snapping/Snap to position %g")]
-	static void SnapPlatform() {
-		if (Selection.activeGameObject.tag == "stair") {
-
-		}
-	}
 }
-
-

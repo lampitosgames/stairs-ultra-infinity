@@ -122,16 +122,16 @@ public class StairBounds {
 		//Switch based on the new target rotation
 		switch (newRot) {
 			case SRotation.UP:
-				trans.eulerAngles = new Vector3(25f, yRot, 0f);
+				trans.eulerAngles = new Vector3(Stair.stairSlopeDeg, yRot, 0f);
 				break;
 			case SRotation.DOWN:
-				trans.eulerAngles = new Vector3(-25f, yRot, 0f);
+				trans.eulerAngles = new Vector3(-Stair.stairSlopeDeg, yRot, 0f);
 				break;
 			case SRotation.RIGHT:
-				trans.eulerAngles = new Vector3(0f, yRot + 25f, 0f);
+				trans.eulerAngles = new Vector3(0f, yRot + Stair.stairSlopeDeg, 0f);
 				break;
 			case SRotation.LEFT:
-				trans.eulerAngles = new Vector3(0f, yRot - 25f, 0f);
+				trans.eulerAngles = new Vector3(0f, yRot - Stair.stairSlopeDeg, 0f);
 				break;
 		}
 	}

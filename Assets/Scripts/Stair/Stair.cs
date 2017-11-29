@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Stair : MonoBehaviour {
+	public static float stairSlopeDeg = 35f;
+	public static float stairLength = 8f;
+	public static float stairHeight = 1f;
+
 	public Direction dir;
 	public SRotation rot;
 
