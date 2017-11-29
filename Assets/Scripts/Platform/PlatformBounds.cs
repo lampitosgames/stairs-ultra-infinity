@@ -17,9 +17,9 @@ public class PlatformBounds {
     public Vector3 HalfWidth {
         get { return col.bounds.extents; }
         set {
-            XSize = value.x * 2;
-            YSize = value.y * 2;
-            ZSize = value.z * 2;
+            XSize = value.x * 2f;
+            YSize = value.y * 2f;
+            ZSize = value.z * 2f;
         }
     }
 
@@ -56,6 +56,46 @@ public class PlatformBounds {
             float scaleRatio = ZSize / trans.localScale.z;
             trans.localScale = new Vector3(trans.localScale.x, trans.localScale.y, value / scaleRatio);
         }
+    }
+
+    public Vector3 MinPos {
+        get { return Center - HalfWidth; }
+        set { Center = value + HalfWidth; }
+    }
+
+    public Vector3 MaxPos {
+        get { return Center + HalfWidth; }
+        set { Center = value - HalfWidth; }
+    }
+
+    public float XMin {
+        get { return Center.x - HalfWidth.x; }
+        set { Center = new Vector3(value + HalfWidth.x, Center.y, Center.z); }
+    }
+
+    public float XMax {
+        get { return Center.x + HalfWidth.x; }
+        set { Center = new Vector3(value - HalfWidth.x, Center.y, Center.z); }
+    }
+
+    public float YMin {
+        get { return Center.y - HalfWidth.y; }
+        set { Center = new Vector3(Center.x, value + HalfWidth.y, Center.z); }
+    }
+
+    public float YMax {
+        get { return Center.x + HalfWidth.x; }
+        set { Center = new Vector3(Center.x, value - HalfWidth.y, Center.z); }
+    }
+
+    public float ZMin {
+        get { return Center.z - HalfWidth.z; }
+        set { Center = new Vector3(Center.x, Center.y, value + HalfWidth.z); }
+    }
+
+    public float ZMax {
+        get { return Center.z + HalfWidth.z; }
+        set { Center = new Vector3(Center.x, Center.y, value - HalfWidth.z); }
     }
 
     public PlatformBounds(GameObject platform, int _sides) {
