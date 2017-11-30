@@ -85,8 +85,6 @@ public class Platform : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update() {
-		if (!active)
-			return;
 
 		if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) {
 			rotateStairs = false;
@@ -94,7 +92,7 @@ public class Platform : MonoBehaviour {
 			rotateStairs = true;
 		}
 
-		if (Input.GetKeyDown(KeyCode.Q)) {
+		if (Input.GetKeyDown(KeyCode.Q) && active) {
             if (rotateStairs)
             {
                 if (!rotateStairCounter)
@@ -114,7 +112,7 @@ public class Platform : MonoBehaviour {
                 rotatePlatformCounter = true;
             }
 		}
-		if (Input.GetKeyDown(KeyCode.E)) {
+		if (Input.GetKeyDown(KeyCode.E) && active) {
             if (rotateStairs)
             {
 
@@ -254,7 +252,7 @@ public class Platform : MonoBehaviour {
 			foreach (KeyValuePair<Direction, Stair> stairItem in attachedStairs) {
 				Stair stair = stairItem.Value;
 				//Remove the parented relationship
-				stair.transform.parent = null;
+				//stair.transform.parent = null;
 			}
 		}
 	}
