@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public enum SRotation {
-	UP,
-	RIGHT,
-	DOWN,
-	LEFT
+	UP = 0,
+	RIGHT = 1,
+	DOWN = 2,
+	LEFT = 3
 }
 
 public class StairBounds {
