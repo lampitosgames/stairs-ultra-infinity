@@ -24,7 +24,7 @@ public class Platform : MonoBehaviour {
 	public float localStairRot = 0f, localPlatformRot = 0f, nextStairRot = 0f, nextPlatformRot = 0f;
 	bool rotateStairClockwise = false, rotateStairCounter = false;
 	bool rotatePlatformClockwise = false, rotatePlatformCounter = false;
-	bool rotateStairs = true, rotatePlatform = false;
+	bool rotateStairs = true;
 
 	//Dictionary of colliders on all sides of the platform
 	Dictionary<Direction, PlatformStairCollider> stairColliders = new Dictionary<Direction, PlatformStairCollider>();
@@ -69,16 +69,13 @@ public class Platform : MonoBehaviour {
 		rotateStairs = (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) ? true : false;
 
 		if (Input.GetKeyDown(KeyCode.Q) && active) {
-			if (rotateStairs) {
-				if (!rotateStairCounter) {
-					nextStairRot -= stairRotDegrees;
-					if (nextStairRot < 0f) {
-						nextStairRot = 360f + nextStairRot;
-					}
-					rotateStairClockwise = false;
+			if (rotateStairs && !rotatePlatformCounter && !rotatePlatformClockwise) {
+				if (!rotateStairClockwise) {
+					nextStairRot = (nextStairRot + stairRotDegrees) % 360f;
+					rotateStairCounter = false;
 				}
-				rotateStairCounter = true;
-			} else {
+				rotateStairClockwise = true;
+			} else if (!rotateStairCounter && !rotateStairClockwise) {
 				if (!rotatePlatformCounter) {
 					nextPlatformRot -= platformRotDegrees;
 					if (nextPlatformRot < 0f) {
@@ -90,13 +87,16 @@ public class Platform : MonoBehaviour {
 			}
 		}
 		if (Input.GetKeyDown(KeyCode.E) && active) {
-			if (rotateStairs) {
-				if (!rotateStairClockwise) {
-					nextStairRot = (nextStairRot + stairRotDegrees) % 360f;
-					rotateStairCounter = false;
+			if (rotateStairs && !rotatePlatformCounter && !rotatePlatformClockwise) {
+				if (!rotateStairCounter) {
+					nextStairRot -= stairRotDegrees;
+					if (nextStairRot < 0f) {
+						nextStairRot = 360f + nextStairRot;
+					}
+					rotateStairClockwise = false;
 				}
-				rotateStairClockwise = true;
-			} else {
+				rotateStairCounter = true;
+			} else if (!rotateStairCounter && !rotateStairClockwise) {
 				if (!rotatePlatformClockwise) {
 					nextPlatformRot = (nextPlatformRot + platformRotDegrees) % 360f;
 					rotatePlatformCounter = false;
@@ -125,10 +125,14 @@ public class Platform : MonoBehaviour {
 			localPlatformRot = (localPlatformRot + Mathf.PI * platformRotSpeed) % 360f;
 		}
 
+		//Update rotations
+		SetRotations(localPlatformRot, localStairRot);
+
 		//If close to snap point
 		if (localStairRot % stairRotDegrees < 4f && Mathf.Abs(nextStairRot - localStairRot) < 4f && (rotateStairCounter || rotateStairClockwise)) {
 			//Set to snap point and end rotation
 			localStairRot = nextStairRot;
+			SetRotations(localPlatformRot, localStairRot);
 			rotateStairCounter = false;
 			rotateStairClockwise = false;
 			ResetStairs();
@@ -138,17 +142,20 @@ public class Platform : MonoBehaviour {
 		if (localPlatformRot % platformRotDegrees < 4f && Mathf.Abs(nextPlatformRot - localPlatformRot) < 4f && (rotatePlatformCounter || rotatePlatformClockwise)) {
 			//Set to snap point and end rotation
 			localPlatformRot = nextPlatformRot;
+			SetRotations(localPlatformRot, localStairRot);
 			rotatePlatformCounter = false;
 			rotatePlatformClockwise = false;
 		}
-        
+	}
+
+	public void SetRotations(float platRot, float stairRot) {
 		//Rotate platform
-		transform.localEulerAngles = new Vector3(0f, localPlatformRot, 0f);
+		transform.localEulerAngles = new Vector3(0f, platRot, 0f);
 		//Rotate stairs
-		stairColliders[Direction.NORTH].transform.localEulerAngles = new Vector3(0f, 0f, localStairRot);
-		stairColliders[Direction.SOUTH].transform.localEulerAngles = new Vector3(0f, 0f, -localStairRot);
-		stairColliders[Direction.EAST].transform.localEulerAngles = new Vector3(localStairRot, 0f, 0f);
-		stairColliders[Direction.WEST].transform.localEulerAngles = new Vector3(-localStairRot, 0f, 0f);
+		stairColliders[Direction.NORTH].transform.localEulerAngles = new Vector3(0f, 0f, stairRot);
+		stairColliders[Direction.SOUTH].transform.localEulerAngles = new Vector3(0f, 0f, -stairRot);
+		stairColliders[Direction.EAST].transform.localEulerAngles = new Vector3(stairRot, 0f, 0f);
+		stairColliders[Direction.WEST].transform.localEulerAngles = new Vector3(-stairRot, 0f, 0f);
 	}
 
 	public void ResetStairs() {
