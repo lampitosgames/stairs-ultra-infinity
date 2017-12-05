@@ -16,7 +16,7 @@ public class DeathBarrier : MonoBehaviour {
 	void Update () {
 		if(player.transform.position.y < 25)
         {
-            player.transform.position = new Vector3(62, 39, -9);
+            player.transform.position = new Vector3(54, 38, 51);
         }
 	}
     
