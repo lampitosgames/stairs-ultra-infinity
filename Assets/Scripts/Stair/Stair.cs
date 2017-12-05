@@ -10,7 +10,7 @@ public class Stair : MonoBehaviour {
 	public Direction dir;
 	public SRotation rot;
 
-	StairBounds bounds;
+	public StairBounds bounds;
 
 	// Use this for initialization
 	void Start() {

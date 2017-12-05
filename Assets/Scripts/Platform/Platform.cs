@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public enum Direction {
+	NONE = -1,
 	NORTH = 0,
 	EAST = 1,
 	SOUTH = 2,
@@ -125,15 +126,16 @@ public class Platform : MonoBehaviour {
 		}
 
 		//If close to snap point
-		if (localStairRot % stairRotDegrees < 4f && Mathf.Abs(nextStairRot - localStairRot) < 4f) {
+		if (localStairRot % stairRotDegrees < 4f && Mathf.Abs(nextStairRot - localStairRot) < 4f && (rotateStairCounter || rotateStairClockwise)) {
 			//Set to snap point and end rotation
 			localStairRot = nextStairRot;
 			rotateStairCounter = false;
 			rotateStairClockwise = false;
+			ResetStairs();
 		}
 
 		//If close to snap point
-		if (localPlatformRot % platformRotDegrees < 4f && Mathf.Abs(nextPlatformRot - localPlatformRot) < 4f) {
+		if (localPlatformRot % platformRotDegrees < 4f && Mathf.Abs(nextPlatformRot - localPlatformRot) < 4f && (rotatePlatformCounter || rotatePlatformClockwise)) {
 			//Set to snap point and end rotation
 			localPlatformRot = nextPlatformRot;
 			rotatePlatformCounter = false;
@@ -147,11 +149,15 @@ public class Platform : MonoBehaviour {
 		stairColliders[Direction.SOUTH].transform.localEulerAngles = new Vector3(0f, 0f, -localStairRot);
 		stairColliders[Direction.EAST].transform.localEulerAngles = new Vector3(localStairRot, 0f, 0f);
 		stairColliders[Direction.WEST].transform.localEulerAngles = new Vector3(-localStairRot, 0f, 0f);
-
 	}
 
-	public void ResetStair(GameObject target) {
-
+	public void ResetStairs() {
+		foreach (KeyValuePair<Direction, Stair> pair in attachedStairs) {
+			StairBounds stair = pair.Value.bounds;
+			stair.trans.SetParent(null);
+			stair.RoundRotation();
+			stair.trans.SetParent(stairColliders[pair.Key].transform, true);
+		}
 	}
 
 	public static void SnapObject(bool isPlatform, GameObject target) {

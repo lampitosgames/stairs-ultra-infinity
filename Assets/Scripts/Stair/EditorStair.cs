@@ -9,6 +9,9 @@ public class EditorStair : MonoBehaviour {
 	public SRotation rot;
 
 	void Update() {
+		if (Application.isPlaying) {
+			return;
+		}
 		if (bounds == null) {
 			bounds = new StairBounds(gameObject);
 		}

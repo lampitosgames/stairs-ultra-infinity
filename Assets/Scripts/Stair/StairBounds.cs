@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public enum SRotation {
+	NONE = -1,
 	UP = 0,
 	RIGHT = 1,
 	DOWN = 2,
@@ -10,8 +11,8 @@ public enum SRotation {
 }
 
 public class StairBounds {
-	private Collider col;
-	private Transform trans;
+	public Collider col;
+	public Transform trans;
 
 
 	//Orientation
@@ -103,7 +104,68 @@ public class StairBounds {
 
 	public void RoundRotation() {
 		//Get euler angles
+		Vector3 euler = trans.eulerAngles;
+		float xRot = euler.x;
+		float yRot = euler.y;
+		float zRot = euler.z;
 
+		Direction newDir = Direction.NONE;
+		//Check directions
+		//North
+		if (CloseTo(0f, Stair.stairSlopeDeg + 4f, yRot)) {
+			newDir = Direction.NORTH;
+		} else if (CloseTo(90f, Stair.stairSlopeDeg + 4f, yRot)) {
+			newDir = Direction.EAST;
+		} else if (CloseTo(180f, Stair.stairSlopeDeg + 4f, yRot)) {
+			newDir = Direction.SOUTH;
+		} else if (CloseTo(270f, Stair.stairSlopeDeg + 4f, yRot)) {
+			newDir = Direction.WEST;
+		}
+
+		SRotation newRot = SRotation.NONE;
+		//Left or right
+		if (CloseTo(0f, 4f, xRot)) { //If left or right
+			if (CloseTo(35f, 4f, yRot % 90f)) { //If right
+				newRot = SRotation.RIGHT;
+			} else if (CloseTo(55f, 4f, yRot % 90f)) { //If left
+				newRot = SRotation.LEFT;
+			}
+		} else if (CloseTo(35f, 4f, xRot)) { //If up
+			newRot = SRotation.UP;
+		} else if (CloseTo(-35f, 4f, xRot)) { //If down
+			newRot = SRotation.DOWN;
+		}
+
+		//If both rotations are valid
+		if (newDir != Direction.NONE && newRot != SRotation.NONE) {
+			//Set the direction and rotation
+			rot = newRot;
+			SetDirection(newDir);
+			//Snap the stair to the proper position
+			Platform.SnapObject(false, trans.gameObject);
+		}
+	}
+
+	public static bool CloseTo(float _closeTo, float _deviation, float _value, float _maxVal = 360f) {
+		//Validate closeTo.  Must be positive and bewtween 0 and _maxVal.  This converts any inputted number into that with proper degree wrapping
+		_closeTo = (_closeTo < 0f) ? _maxVal + (_closeTo % _maxVal) : _closeTo % _maxVal;
+		float min = _closeTo - _deviation;
+		min = (min < 0f) ? _maxVal + (min % _maxVal) : min % _maxVal;
+		float max = (_closeTo + _deviation) % _maxVal;
+		_value = (_value < 0f) ? _maxVal + (_value % _maxVal) : _value % _maxVal;
+
+		if (_value > _maxVal - _deviation) {
+			_value -= _deviation;
+			min -= _deviation;
+			max = _maxVal;
+		}
+		if (_value < _deviation) {
+			_value += _deviation;
+			min = 0f;
+			max += _deviation;
+		}
+
+		return (_value >= min && _value <= max);
 	}
 
 	public void SetDirection(Direction newDir) {
