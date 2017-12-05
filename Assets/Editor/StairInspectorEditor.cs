@@ -12,19 +12,33 @@ public class StairInspectorEditor : Editor {
 			//Horizontal line 1
 			GUILayout.BeginHorizontal();
 			{
-				if (GUILayout.Button("Set North/South")) {
+				if (GUILayout.Button("Set North")) {
 					EditorStair stairTarget = (EditorStair)target;
 					recordStair(stairTarget);
 
 					//Do things
 					stairTarget.bounds.SetDirection(Direction.NORTH);
 				}
-				if (GUILayout.Button("Set East/West")) {
+				if (GUILayout.Button("Set South")) {
+					EditorStair stairTarget = (EditorStair)target;
+					recordStair(stairTarget);
+
+					//Do things
+					stairTarget.bounds.SetDirection(Direction.SOUTH);
+				}
+				if (GUILayout.Button("Set East")) {
 					EditorStair stairTarget = (EditorStair)target;
 					recordStair(stairTarget);
 
 					//Do things
 					stairTarget.bounds.SetDirection(Direction.EAST);
+				}
+				if (GUILayout.Button("Set West")) {
+					EditorStair stairTarget = (EditorStair)target;
+					recordStair(stairTarget);
+
+					//Do things
+					stairTarget.bounds.SetDirection(Direction.WEST);
 				}
 			}
 			GUILayout.EndHorizontal();

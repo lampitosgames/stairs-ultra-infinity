@@ -101,15 +101,22 @@ public class StairBounds {
 		this.col = stair.GetComponent<Collider>();
 	}
 
+	public void RoundRotation() {
+		//Get euler angles
+
+	}
+
 	public void SetDirection(Direction newDir) {
 		//Set the new direction
 		dir = newDir;
-		//If switching to the north/south axis...
-		if (newDir == Direction.NORTH || newDir == Direction.SOUTH) {
-			//Currently do nothing
-		} else if (newDir == Direction.EAST || newDir == Direction.WEST) {
-			//Set the y of the rotation to 90 degrees
+		if (newDir == Direction.NORTH) {
+			trans.eulerAngles = new Vector3(0f, 0f, 0f);
+		} else if (newDir == Direction.EAST) {
 			trans.eulerAngles = new Vector3(0f, 90f, 0f);
+		} else if (newDir == Direction.SOUTH) {
+			trans.eulerAngles = new Vector3(0f, 180f, 0f);
+		} else if (newDir == Direction.WEST) {
+			trans.eulerAngles = new Vector3(0f, 270f, 0f);
 		}
 		//Set the rotation
 		SetRotation(Rot);
@@ -118,20 +125,25 @@ public class StairBounds {
 	public void SetRotation(SRotation newRot) {
 		rot = newRot;
 		//Store the y rotation
-		float yRot = (dir == Direction.NORTH || dir == Direction.SOUTH) ? 0f : 90f;
+		float yRot = 0f;
+		yRot += (dir == Direction.EAST) ? 90f : 0f;
+		yRot += (dir == Direction.SOUTH) ? 180f : 0f;
+		yRot += (dir == Direction.WEST) ? 270f : 0f;
+
 		//Switch based on the new target rotation
 		switch (newRot) {
 			case SRotation.UP:
 				trans.eulerAngles = new Vector3(Stair.stairSlopeDeg, yRot, 0f);
 				break;
 			case SRotation.DOWN:
-				trans.eulerAngles = new Vector3(-Stair.stairSlopeDeg, yRot, 0f);
+				trans.eulerAngles = new Vector3(360f - Stair.stairSlopeDeg, yRot, 0f);
 				break;
 			case SRotation.RIGHT:
 				trans.eulerAngles = new Vector3(0f, yRot + Stair.stairSlopeDeg, 0f);
 				break;
 			case SRotation.LEFT:
-				trans.eulerAngles = new Vector3(0f, yRot - Stair.stairSlopeDeg, 0f);
+				yRot = (yRot < 1f) ? 360f - Stair.stairSlopeDeg : yRot - Stair.stairSlopeDeg;
+				trans.eulerAngles = new Vector3(0f, yRot, 0f);
 				break;
 		}
 	}
