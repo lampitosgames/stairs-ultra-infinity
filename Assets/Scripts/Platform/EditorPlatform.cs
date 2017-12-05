@@ -21,6 +21,7 @@ public class EditorPlatform : MonoBehaviour {
 		}
 		if (bounds == null) {
 			bounds = new PlatformBounds(gameObject, sidesCount);
+			gameObject.GetComponent<Platform>().bounds = bounds;
 		}
 		if (platformMesh == null) {
 			for (int i = 0; i < transform.childCount; i++) {

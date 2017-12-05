@@ -9,7 +9,6 @@ public enum Direction {
 	WEST = 3
 }
 
-[RequireComponent(typeof(Transform))]
 public class Platform : MonoBehaviour {
 	//Number of sides this platform has
 	public int sidesCount = 4;
@@ -18,49 +17,30 @@ public class Platform : MonoBehaviour {
 	public bool active = false;
 
 	//Stairs rotation speed variables
-	public float stairRotSpeed;
-	public float platformRotSpeed;
+	public float stairRotSpeed, platformRotSpeed;
+	public float stairRotDegrees, platformRotDegrees;
 
-    public float stairRotDegrees;
-    public float platformRotDegrees;
+	public float localStairRot = 0f, localPlatformRot = 0f, nextStairRot = 0f, nextPlatformRot = 0f;
+	bool rotateStairClockwise = false, rotateStairCounter = false;
+	bool rotatePlatformClockwise = false, rotatePlatformCounter = false;
+	bool rotateStairs = true, rotatePlatform = false;
 
-	float localStairRot;
-	float localPlatformRot;
-
-    float nextStairRot;
-    float nextPlatformRot;
-
-    bool rotateStairClockwise = false;
-    bool rotateStairCounter = false;
-
-    bool rotatePlatformClockwise = false;
-    bool rotatePlatformCounter = false;
-
-    bool rotateStairs = true;
-    bool rotatePlatform = false;
-
-    //Dictionary of colliders on all sides of the platform
-    Dictionary<Direction, PlatformStairCollider> stairColliders = new Dictionary<Direction, PlatformStairCollider>();
+	//Dictionary of colliders on all sides of the platform
+	Dictionary<Direction, PlatformStairCollider> stairColliders = new Dictionary<Direction, PlatformStairCollider>();
 
 	//Dictionary of stairs colliding with the platform
 	Dictionary<Direction, Stair> attachedStairs = new Dictionary<Direction, Stair>();
 
 	//Bounds of this platform
-	PlatformBounds bounds;
+	public PlatformBounds bounds;
 
 	// Use this for initialization
 	void Start() {
 		//Create a bounds object so we can properly place this platform
 		bounds = new PlatformBounds(gameObject, sidesCount);
 
-		localStairRot = 0.0f;
-		localPlatformRot = 0.0f;
-
-        nextStairRot = 0.0f;
-        nextPlatformRot = 0.0f;
-
-        //Get children
-        for (int i = 0; i < transform.childCount; i++) {
+		//Get child colliders and give them directions
+		for (int i = 0; i < transform.childCount; i++) {
 			GameObject child = transform.GetChild(i).gameObject;
 			if (child.tag == "platformStairCollider") {
 				PlatformStairCollider childScript = child.GetComponent<PlatformStairCollider>();
@@ -82,145 +62,101 @@ public class Platform : MonoBehaviour {
 			}
 		}
 	}
-	
+
 	// Update is called once per frame
 	void Update() {
-
-		if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) {
-			rotateStairs = false;
-		} else {
-			rotateStairs = true;
-		}
+		rotateStairs = (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) ? true : false;
 
 		if (Input.GetKeyDown(KeyCode.Q) && active) {
-            if (rotateStairs)
-            {
-                if (!rotateStairCounter)
-                {
-                    nextStairRot += stairRotDegrees;
-                    rotateStairClockwise = false;
-                }
-                rotateStairCounter = true;
-            }
-            else
-            {
-                if (!rotatePlatformCounter)
-                {
-                    nextPlatformRot -= platformRotDegrees;
-                    rotatePlatformClockwise = false;
-                }
-                rotatePlatformCounter = true;
-            }
+			if (rotateStairs) {
+				if (!rotateStairCounter) {
+					nextStairRot -= stairRotDegrees;
+					if (nextStairRot < 0f) {
+						nextStairRot = 360f + nextStairRot;
+					}
+					rotateStairClockwise = false;
+				}
+				rotateStairCounter = true;
+			} else {
+				if (!rotatePlatformCounter) {
+					nextPlatformRot -= platformRotDegrees;
+					if (nextPlatformRot < 0f) {
+						nextPlatformRot = 360f + nextPlatformRot;
+					}
+					rotatePlatformClockwise = false;
+				}
+				rotatePlatformCounter = true;
+			}
 		}
 		if (Input.GetKeyDown(KeyCode.E) && active) {
-            if (rotateStairs)
-            {
+			if (rotateStairs) {
+				if (!rotateStairClockwise) {
+					nextStairRot = (nextStairRot + stairRotDegrees) % 360f;
+					rotateStairCounter = false;
+				}
+				rotateStairClockwise = true;
+			} else {
+				if (!rotatePlatformClockwise) {
+					nextPlatformRot = (nextPlatformRot + platformRotDegrees) % 360f;
+					rotatePlatformCounter = false;
+				}
+				rotatePlatformClockwise = true;
+			}
+		}
 
-                if (!rotateStairClockwise)
-                {
-                    nextStairRot -= stairRotDegrees;
-                    rotateStairCounter = false;
-                }
-                rotateStairClockwise = true;
-            }
-            else
-            {
-                if (!rotatePlatformClockwise)
-                {
-                    nextPlatformRot += platformRotDegrees;
-                    rotatePlatformCounter = false;
-                }
-                rotatePlatformClockwise = true;
-            }
-        }
-        
-		float stairAngle = 0.0f;
-		float platformAngle = 0.0f;
-		if (rotateStairClockwise) {
-
-			stairAngle -= Mathf.PI * stairRotSpeed;
-
-            if (localStairRot < nextStairRot)
-            {
-                if (nextStairRot <= 0.0f)
-                {
-                    nextStairRot += 360.0f;
-                }
-                localStairRot = nextStairRot;
-                rotateStairClockwise = false;
-            }
-        }
+		//If rotating stairs counter clockwise
 		if (rotateStairCounter) {
+			localStairRot -= Mathf.PI * stairRotSpeed;
+			if (localStairRot < 0f) {
+				localStairRot = 360f + localStairRot;
+			}
+		} else if (rotateStairClockwise) {
+			localStairRot = (localStairRot + Mathf.PI * stairRotSpeed) % 360f;
+		}
 
-			stairAngle += Mathf.PI * stairRotSpeed;
+		//If rotating stairs counter clockwise
+		if (rotatePlatformCounter) {
+			localPlatformRot -= Mathf.PI * platformRotSpeed;
+			if (localPlatformRot < 0f) {
+				localPlatformRot = 360f + localPlatformRot;
+			}
+		} else if (rotatePlatformClockwise) {
+			localPlatformRot = (localPlatformRot + Mathf.PI * platformRotSpeed) % 360f;
+		}
 
-            if (localStairRot > nextStairRot)
-            {
-                if (nextStairRot >= 360.0f)
-                {
-                    nextStairRot -= 360.0f;
-                }
-                localStairRot = nextStairRot;
-                rotateStairCounter = false;
-            }
-        }
+		//If close to snap point
+		if (localStairRot % stairRotDegrees < 4f && Mathf.Abs(nextStairRot - localStairRot) < 4f) {
+			//Set to snap point and end rotation
+			localStairRot = nextStairRot;
+			rotateStairCounter = false;
+			rotateStairClockwise = false;
+		}
 
-        if (rotatePlatformClockwise)
-        {
-
-            platformAngle += Mathf.PI * platformRotSpeed;
-
-            if (localPlatformRot > nextPlatformRot)
-            {
-                if (nextPlatformRot >= 360.0f)
-                {
-                    nextPlatformRot -= 360.0f;
-                }
-                localPlatformRot = nextPlatformRot;
-                rotatePlatformClockwise = false;
-            }
-        }
-
-        if (rotatePlatformCounter)
-        {
-
-            platformAngle -= Mathf.PI * platformRotSpeed;
-
-            if (localPlatformRot < nextPlatformRot)
-            {
-                if (nextPlatformRot <= 0.0f)
-                {
-                    nextPlatformRot += 360.0f;
-                }
-                localPlatformRot = nextPlatformRot;
-                rotatePlatformCounter = false;
-            }
-        }
-
-        localStairRot += stairAngle;
-		localPlatformRot += platformAngle;
-
+		//If close to snap point
+		if (localPlatformRot % platformRotDegrees < 4f && Mathf.Abs(nextPlatformRot - localPlatformRot) < 4f) {
+			//Set to snap point and end rotation
+			localPlatformRot = nextPlatformRot;
+			rotatePlatformCounter = false;
+			rotatePlatformClockwise = false;
+		}
         
-		
+		//Rotate platform
 		transform.localEulerAngles = new Vector3(0f, localPlatformRot, 0f);
-		
-		Transform NTransform = stairColliders[Direction.NORTH].transform;
-		NTransform.localEulerAngles = new Vector3(0f, 0f, localStairRot);
-
-		Transform STransform = stairColliders[Direction.SOUTH].transform;
-		STransform.localEulerAngles = new Vector3(0f, 0f, -localStairRot);
-
-		Transform ETransform = stairColliders[Direction.EAST].transform;
-		ETransform.localEulerAngles = new Vector3(localStairRot, 0f, 0f);
-
-		Transform WTransform = stairColliders[Direction.WEST].transform;
-		WTransform.localEulerAngles = new Vector3(-localStairRot, 0f, 0f);
+		//Rotate stairs
+		stairColliders[Direction.NORTH].transform.localEulerAngles = new Vector3(0f, 0f, localStairRot);
+		stairColliders[Direction.SOUTH].transform.localEulerAngles = new Vector3(0f, 0f, -localStairRot);
+		stairColliders[Direction.EAST].transform.localEulerAngles = new Vector3(localStairRot, 0f, 0f);
+		stairColliders[Direction.WEST].transform.localEulerAngles = new Vector3(-localStairRot, 0f, 0f);
 
 	}
-	
+
+	public void ResetStair(GameObject target) {
+
+	}
+
 	public static void SnapObject(bool isPlatform, GameObject target) {
 		Transform thisTrans = target.GetComponent<Transform>();
-		EditorPlatform otherPlat;
+		PlatformBounds otherBounds;
 		//Sphere cast to get nearest platforms
 		Collider[] otherPlats = Physics.OverlapSphere(thisTrans.position, Stair.stairLength * 2);
 		//Loop and get the nearest platform
@@ -229,14 +165,14 @@ public class Platform : MonoBehaviour {
 		for (int i = 0; i < otherPlats.Length; i++) {
 			if (otherPlats[i].tag == "platformMesh") {
 				//Get the other platform's component
-				otherPlat = otherPlats[i].transform.parent.gameObject.GetComponent<EditorPlatform>();
+				otherBounds = otherPlats[i].transform.parent.gameObject.GetComponent<Platform>().bounds;
 				//If this is a platform and it is the same as the other platform, continue
 				if (isPlatform) {
-					if (target.GetComponent<EditorPlatform>() == otherPlat) {
+					if (target.GetComponent<Platform>().bounds == otherBounds) {
 						continue;
 					}
 				}
-				float dist = Vector3.Distance(thisTrans.position, otherPlat.bounds.Center);
+				float dist = Vector3.Distance(thisTrans.position, otherBounds.Center);
 				if (dist < smallestPlatDist) {
 					nearestPlatIndex = i;
 					smallestPlatDist = dist;
@@ -249,7 +185,7 @@ public class Platform : MonoBehaviour {
 		}
 
 		//Get the nearest platform gameObject
-		otherPlat = otherPlats[nearestPlatIndex].transform.parent.gameObject.GetComponent<EditorPlatform>();
+		otherBounds = otherPlats[nearestPlatIndex].transform.parent.gameObject.GetComponent<Platform>().bounds;
 
 		//Calculate variables
 		float theta = Mathf.Deg2Rad * Stair.stairSlopeDeg;
@@ -258,17 +194,17 @@ public class Platform : MonoBehaviour {
 
 		float angles = hStair * Mathf.Sin(theta) + wStair * Mathf.Cos(theta);
 		//Get the hor shift
-		float horShift = otherPlat.bounds.HalfWidth.x + hStair * Mathf.Sin(theta) + wStair * Mathf.Cos(theta);
+		float horShift = otherBounds.HalfWidth.x + hStair * Mathf.Sin(theta) + wStair * Mathf.Cos(theta);
 		//Get the vert shift
 		float vertShift = wStair * Mathf.Sin(theta);
 		//If it is a platform, calculate differently
 		if (isPlatform) {
-			horShift = (target.GetComponent<EditorPlatform>().bounds.HalfWidth.x + angles) + (otherPlat.bounds.HalfWidth.x + angles);
+			horShift = (target.GetComponent<EditorPlatform>().bounds.HalfWidth.x + angles) + (otherBounds.HalfWidth.x + angles);
 			vertShift *= 2f;
 		}
 
 		//Cache the other platform's position
-		Vector3 otherPos = otherPlat.bounds.Center;
+		Vector3 otherPos = otherBounds.Center;
 
 		//4*4 possible positions.  Total of 16
 		//Yes there is probably a better way to do this.  But it is an editor script so I don't give a damn :)
